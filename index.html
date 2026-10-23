@@ -1,0 +1,344 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pro Studio | Create & Share</title>
+<style>
+:root{--bg:#0b0e14;--card:#151b26;--green:#38e69a;--muted:#a0aabb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:white;font-family:Arial,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer;border:0;border-radius:10px;padding:12px;background:var(--green);color:#07120d;font-weight:bold}
+input,textarea,select{width:100%;padding:13px;border-radius:10px;background:#0e131c;color:white;border:1px solid #30394a;margin:6px 0 12px}
+textarea{resize:vertical;min-height:75px}
+header{display:flex;align-items:center;justify-content:space-between;padding:15px;position:sticky;top:0;background:#0b0e14ee;border-bottom:1px solid #252b37;z-index:5}
+.logo{font-size:22px;font-weight:bold}.logo span{color:var(--green)}
+.wrap{max-width:700px;margin:auto;padding:15px 15px 95px}
+.card{background:var(--card);padding:17px;border:1px solid #252d3b;border-radius:17px;margin:14px 0}
+h2{font-size:22px}h3{margin:8px 0}
+small,.muted{color:var(--muted)}
+label{font-size:13px;color:#d2d8e2}
+.full{width:100%;margin-top:5px}
+.secondary{background:#273244;color:white}
+.hidden{display:none!important}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#121722;border-top:1px solid #30394a;display:flex;justify-content:space-around;padding:10px 3px calc(10px + env(safe-area-inset-bottom));z-index:6}
+.nav button{background:transparent;color:#d7dfeb;padding:8px 9px;font-size:12px}
+.nav button b{display:block;font-size:20px;margin-bottom:4px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{background:#222c3b;color:white;padding:18px 10px;border-radius:13px;text-align:center}
+.tile b{display:block;color:var(--green);font-size:23px;margin-bottom:8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#222c3b;border-radius:12px;padding:12px 5px;text-align:center}
+.stat strong{display:block;color:var(--green);font-size:21px;margin:7px 0}
+.thumb{width:100%;max-height:230px;object-fit:cover;border-radius:10px;background:#222c3b}
+.row{display:flex;align-items:center;gap:12px}
+.avatar{width:58px;height:58px;border-radius:50%;background:#263c36;display:grid;place-items:center;color:var(--green);font-size:25px}
+video{width:100%;border-radius:12px;max-height:350px;background:#000}
+.menu{position:fixed;right:12px;top:65px;width:220px;background:#202938;border:1px solid #394558;border-radius:14px;padding:8px;z-index:10;box-shadow:0 8px 30px #0009}
+.menu button{display:block;width:100%;text-align:left;margin:3px 0;background:transparent;color:white}
+.menu button:hover{background:#303b4d}
+.notice{padding:12px;border-radius:10px;background:#243a31;color:#aaffd2;margin:10px 0}
+@media(min-width:600px){.wrap{padding-top:24px}.card{padding:22px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">▶ <span>Pro</span> Studio</div>
+  <button class="secondary" onclick="toggleMenu()">⋮</button>
+</header>
+
+<div id="menu" class="menu hidden">
+  <button onclick="openCreate()">＋ Upload / Create</button>
+  <button onclick="show('redeem')">🎟 Redeem</button>
+  <button onclick="show('money')">💰 Money</button>
+  <button onclick="show('profile')">👤 Profile</button>
+  <button onclick="show('post')">📝 Post</button>
+  <button onclick="logout()">↪ Log out</button>
+</div>
+
+<main class="wrap">
+
+<section id="signup">
+ <div class="card">
+  <h2>🚀 Join Pro Studio</h2>
+  <p class="muted">Create. Share. Grow.</p>
+  <form onsubmit="sendDemoOTP(event)">
+   <label>Account name</label><input id="suName" required placeholder="Your name">
+   <label>Email</label><input id="suEmail" type="email" required placeholder="you@example.com">
+   <label>Mobile number</label><input id="suPhone" type="tel" required placeholder="+91 9876543210">
+   <label>Password (minimum 8 characters)</label><input id="suPass" type="password" minlength="8" required>
+   <button class="full">Continue to OTP</button>
+  </form>
+  <div id="otpBox" class="hidden">
+   <div class="notice">DEMO ONLY: No real SMS is sent. Connect Firebase Phone Auth for real OTP.</div>
+   <label>Enter test OTP</label><input id="otp" inputmode="numeric" maxlength="6" placeholder="Enter demo code">
+   <button class="full" onclick="verifyDemoOTP()">Verify OTP & Continue</button>
+   <p class="muted">Test code for this demo: 123456</p>
+  </div>
+ </div>
+</section>
+
+<section id="setup" class="hidden">
+ <div class="card">
+  <h2>Complete your profile</h2>
+  <label>Account name</label><input id="pName" placeholder="Your name">
+  <label>Choose unique @username</label><input id="handle" placeholder="yourname" oninput="checkHandle()">
+  <small id="handleMsg">3–20 letters, numbers or underscores.</small><br><br>
+  <label>Age</label><input id="age" type="number" min="1" max="120" placeholder="Your age">
+  <label>Gender</label>
+  <select id="gender"><option value="">Choose (optional)</option><option>Male</option><option>Female</option><option>Prefer not to say</option></select>
+  <label>Channel name</label><input id="channel" placeholder="Your creator channel">
+  <button class="full" onclick="finishSetup()">Save & Open Pro Studio</button>
+ </div>
+</section>
+
+<section id="home" class="hidden">
+ <div class="card">
+  <h2>Welcome to Pro Studio 🎬</h2>
+  <p class="muted">Watch videos. Create content. Grow your channel.</p>
+  <button onclick="openCreate()">＋ Create something</button>
+ </div>
+ <div class="grid">
+  <button class="tile" onclick="openCreate('video')"><b>▶</b>Upload Video</button>
+  <button class="tile" onclick="openCreate('reel')"><b>▣</b>Create Reel</button>
+  <button class="tile" onclick="openCreate('live')"><b>🔴</b>Go Live</button>
+  <button class="tile" onclick="show('post')"><b>✎</b>Create Post</button>
+ </div>
+ <h2>Latest videos</h2>
+ <div id="feed"><p class="muted">Abhi koi video upload nahi hui hai.</p></div>
+</section>
+
+<section id="create" class="hidden">
+ <div class="card">
+  <h2 id="createHeading">＋ Upload content</h2>
+  <label>Content type</label>
+  <select id="type" onchange="updateType()">
+   <option value="video">Video</option><option value="reel">Reel / Short</option><option value="live">Live stream (demo)</option>
+  </select>
+  <div id="fileArea">
+   <label>Choose video from phone</label><input id="videoFile" type="file" accept="video/*">
+   <label>Thumbnail image (optional)</label><input id="thumbFile" type="file" accept="image/*">
+  </div>
+  <label>Title</label><input id="title" maxlength="100" placeholder="Enter content title">
+  <label>Description</label><textarea id="description" placeholder="Tell viewers about your content"></textarea>
+  <label>Hashtags</label><input id="hashtags" placeholder="#Gaming #Minecraft">
+  <label>Audience: Is this made for kids?</label>
+  <select id="kids"><option value="no">No, not specifically made for kids</option><option value="yes">Yes, made for kids</option></select>
+  <label>Is this content age-restricted (18+)?</label>
+  <select id="adult"><option value="no">No</option><option value="yes">Yes, 18+ content</option></select>
+  <p class="muted">Choose the actual audience accurately. Kids settings and age restriction are different.</p>
+  <button class="full" onclick="publish()">Publish / Preview</button>
+  <button class="full secondary" onclick="show('home')">Cancel</button>
+  <div id="uploadMsg"></div>
+ </div>
+</section>
+
+<section id="post" class="hidden">
+ <div class="card">
+  <h2>Create a post</h2>
+  <textarea id="postText" maxlength="2000" placeholder="What's on your mind?"></textarea>
+  <label>Add image (optional)</label><input id="postImage" type="file" accept="image/*">
+  <button class="full" onclick="publishPost()">Share post</button>
+ </div>
+ <div id="posts"></div>
+</section>
+
+<section id="profile" class="hidden">
+ <div class="card">
+  <div class="row">
+   <div class="avatar">▶</div>
+   <div><h2 id="profileName">Creator</h2><p id="profileHandle" class="muted">@creator</p></div>
+  </div>
+  <p id="bio" class="muted">Pro Studio Creator</p>
+  <div class="stats">
+   <div class="stat">Views<strong id="views">0</strong></div>
+   <div class="stat">Followers<strong id="followers">0</strong></div>
+   <div class="stat">Videos<strong id="videoCount">0</strong></div>
+  </div>
+  <button class="full" onclick="show('studio')">📊 Creator Studio</button>
+  <button class="full secondary" onclick="editProfile()">Edit profile</button>
+ </div>
+ <h3>Your content</h3><div id="myVideos"></div>
+</section>
+
+<section id="studio" class="hidden">
+ <div class="card">
+  <h2>📊 Creator Studio</h2>
+  <p class="muted">Demo analytics for content created in this browser.</p>
+  <div class="stats">
+   <div class="stat">Views<strong id="studioViews">0</strong></div>
+   <div class="stat">Likes<strong id="likes">0</strong></div>
+   <div class="stat">Videos<strong id="studioCount">0</strong></div>
+  </div>
+  <p class="muted">Real view counts require server-side tracking and a database.</p>
+  <button class="full" onclick="show('profile')">Back to Profile</button>
+ </div>
+</section>
+
+<section id="money" class="hidden">
+ <div class="card">
+  <h2>💰 Money & Earnings</h2>
+  <div class="stats"><div class="stat">Balance<strong>₹0</strong></div><div class="stat">Earned<strong>₹0</strong></div><div class="stat">Payouts<strong>0</strong></div></div>
+  <p class="muted">Earnings are not generated automatically by this demo. Real monetization requires a verified backend, eligibility rules and a payout provider.</p>
+ </div>
+</section>
+
+<section id="redeem" class="hidden">
+ <div class="card">
+  <h2>🎟 Redeem Code</h2>
+  <input id="redeemCode" placeholder="Enter your code">
+  <button class="full" onclick="redeem()">Redeem</button>
+  <p id="redeemMsg"></p>
+  <small>Demo only. Real codes must be validated securely on a server.</small>
+ </div>
+</section>
+
+<section id="watch" class="hidden">
+ <div class="card">
+  <div id="watchContent"></div>
+  <button class="full secondary" onclick="show('home')">← Back to Home</button>
+ </div>
+</section>
+
+</main>
+
+<nav class="nav">
+ <button onclick="show('home')"><b>⌂</b>Home</button>
+ <button onclick="show('home');openCreate()"><b>＋</b>Create</button>
+ <button onclick="show('studio')"><b>▥</b>Studio</button>
+ <button onclick="show('profile')"><b>◉</b>Profile</button>
+</nav>
+
+<script>
+const $=id=>document.getElementById(id);
+let user=null, videos=[],posts=[],knownHandles=['admin','minecraft','techmc','youtube'];
+let selectedVideo=null;
+function toggleMenu(){$('menu').classList.toggle('hidden')}
+function show(id){
+ document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+ $(id).classList.remove('hidden');$('menu').classList.add('hidden');
+ if(id==='profile'||id==='studio')refresh();
+ window.scrollTo(0,0);
+}
+function sendDemoOTP(e){
+ e.preventDefault();
+ if(!$('suPhone').value.trim())return;
+ $('otpBox').classList.remove('hidden');
+}
+function verifyDemoOTP(){
+ if($('otp').value.trim()!=='123456'){alert('Incorrect OTP! Please try again.');return}
+ user={name:$('suName').value.trim(),email:$('suEmail').value.trim(),phone:$('suPhone').value.trim()};
+ $('pName').value=user.name;show('setup');
+}
+function checkHandle(){
+ let h=$('handle').value.trim().replace(/^@+/,'').toLowerCase();
+ let taken=knownHandles.includes(h);
+ let valid=/^[a-z0-9_]{3,20}$/.test(h);
+ $('handleMsg').textContent=!h?'3–20 letters, numbers or underscores.':!valid?'Use 3–20 letters, numbers or underscores.':taken?'✗ Username already taken':'✓ Looks available in this demo';
+ $('handleMsg').style.color=valid&&!taken?'#38e69a':'#ff7474';
+}
+function finishSetup(){
+ let h=$('handle').value.trim().replace(/^@+/,'').toLowerCase();
+ let age=Number($('age').value);
+ if(!$('pName').value.trim()||!(/^[a-z0-9_]{3,20}$/).test(h)||knownHandles.includes(h)||!age||age<1||age>120){
+ alert('Please enter a name, valid available username and valid age.');return;
+ }
+ user.name=$('pName').value.trim();user.handle=h;
+ user.age=age;user.gender=$('gender').value;user.channel=$('channel').value.trim()||user.name;
+ knownHandles.push(h);show('home');refresh();
+}
+function openCreate(type){
+ $('menu').classList.add('hidden');$('type').value=type||'video';updateType();show('create');
+}
+function updateType(){
+ let t=$('type').value;
+ $('createHeading').textContent=t==='live'?'🔴 Start a Live (demo)':t==='reel'?'▣ Upload a Reel':'＋ Upload a Video';
+ $('fileArea').classList.toggle('hidden',t==='live');
+}
+function publish(){
+ let t=$('type').value,title=$('title').value.trim();
+ if(!user){alert('Create an account first.');return}
+ if(!title){alert('Please enter a title.');return}
+ if($('adult').value==='yes' && user.age<18){alert('Age-restricted content cannot be published by this account.');return}
+ if(t==='live'){alert('Live streaming needs a real streaming server. This demo cannot broadcast.');return}
+ let file=$('videoFile').files[0];
+ if(!file){alert('Please choose a video file.');return}
+ if(file.size>100*1024*1024){alert('Demo limit: 100 MB per video.');return}
+ let thumb=$('thumbFile').files[0];
+ if(thumb&&!thumb.type.startsWith('image/')){alert('Choose an image thumbnail.');return}
+ videos.unshift({id:Date.now(),owner:user.handle,title,description:$('description').value,hashtags:$('hashtags').value,type:t,kids:$('kids').value,adult:$('adult').value,fileURL:URL.createObjectURL(file),thumbURL:thumb?URL.createObjectURL(thumb):'',views:0,likes:0});
+ $('uploadMsg').innerHTML='<div class="notice">Preview published in this browser. It is not publicly uploaded.</div>';
+ $('videoFile').value='';$('thumbFile').value='';
+ refresh();
+}
+function refresh(){
+ if(!user)return;
+ $('profileName').textContent=user.channel||user.name;
+ $('profileHandle').textContent='@'+user.handle;
+ $('bio').textContent='Pro Studio Creator';
+ let mine=videos.filter(v=>v.owner===user.handle);
+ let total=mine.reduce((s,v)=>s+v.views,0);
+ $('views').textContent=total;$('followers').textContent='0';
+ $('videoCount').textContent=mine.length;$('studioViews').textContent=total;
+ $('studioCount').textContent=mine.length;
+ $('likes').textContent=mine.reduce((s,v)=>s+v.likes,0);
+ $('myVideos').innerHTML=mine.map(videoCard).join('')||'<p class="muted">You have not uploaded any videos yet.</p>';
+ $('feed').innerHTML=videos.map(videoCard).join('')||'<p class="muted">Abhi koi video upload nahi hui hai.</p>';
+}
+function videoCard(v){
+ return `<div class="card">
+ ${v.thumbURL?`<img class="thumb" src="${v.thumbURL}" alt="Thumbnail">`:''}
+ <h3>${esc(v.title)}</h3><small>@${esc(v.owner)} · ${v.views} views · ${v.likes} likes</small>
+ <p>${esc(v.description||'')}</p><small>${esc(v.hashtags||'')} · ${v.kids==='yes'?'Made for kids':'General audience'}${v.adult==='yes'?' · Age-restricted':''}</small>
+ <button class="full" onclick="watchVideo(${v.id})">▶ Watch video</button>
+ </div>`;
+}
+function watchVideo(id){
+ selectedVideo=videos.find(v=>v.id===id);if(!selectedVideo)return;
+ selectedVideo.views++;
+ $('watchContent').innerHTML=`<video controls playsinline src="${selectedVideo.fileURL}"></video>
+ <h2>${esc(selectedVideo.title)}</h2><p class="muted">@${esc(selectedVideo.owner)} · ${selectedVideo.views} views</p>
+ <p>${esc(selectedVideo.description||'')}</p><p>${esc(selectedVideo.hashtags||'')}</p>
+ <button onclick="likeVideo(${id})">♥ Like (${selectedVideo.likes})</button>`;
+ show('watch');refresh();
+}
+function likeVideo(id){
+ let v=videos.find(x=>x.id===id);if(!v)return;v.likes++;
+ watchVideoNoView(v);
+ refresh();
+}
+function watchVideoNoView(v){
+ $('watchContent').innerHTML=`<video controls playsinline src="${v.fileURL}"></video><h2>${esc(v.title)}</h2>
+ <p class="muted">@${esc(v.owner)} · ${v.views} views</p><p>${esc(v.description||'')}</p>
+ <button onclick="likeVideo(${v.id})">♥ Like (${v.likes})</button>`;
+}
+function publishPost(){
+ if(!user){alert('Create an account first.');return}
+ let txt=$('postText').value.trim(),f=$('postImage').files[0];
+ if(!txt&&!f){alert('Write something or select an image.');return}
+ if(f&&!f.type.startsWith('image/'))return;
+ posts.unshift({txt,img:f?URL.createObjectURL(f):'',owner:user.handle});
+ $('posts').innerHTML=posts.map(p=>`<div class="card"><b>@${esc(p.owner)}</b><p>${esc(p.txt)}</p>${p.img?`<img class="thumb" src="${p.img}">`:''}</div>`).join('');
+ $('postText').value='';$('postImage').value='';
+}
+function redeem(){
+ let code=$('redeemCode').value.trim();
+ $('redeemMsg').textContent=code?'Invalid or unconfigured demo code.':'Please enter a code.';
+}
+function editProfile(){
+ if(!user)return;
+ let name=prompt('Channel name:',user.channel);
+ if(name!==null&&name.trim()){user.channel=name.trim();refresh()}
+}
+function logout(){
+ user=null;videos.forEach(v=>{URL.revokeObjectURL(v.fileURL);if(v.thumbURL)URL.revokeObjectURL(v.thumbURL)});
+ videos=[];posts=[];$('otpBox').classList.add('hidden');$('otp').value='';show('signup');
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+show('signup');
+</script>
+</body>
+  </html>
+  
